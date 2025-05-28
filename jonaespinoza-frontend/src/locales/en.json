@@ -1,0 +1,76 @@
+{
+  "greeting": "Welcome!",
+  "welcome": "I'm Jona and here you will find my projects, photos, games, and more.",
+
+  "about": {
+    "title": "About me",
+    "content": "I'm passionate about technology and web development."
+  },
+
+  "projects": {
+    "title": "Projects",
+    "description": "Here you’ll find my most recent work.",
+    "comingSoon": "Coming soon..."
+  },
+
+  "photos": {
+    "title": "Photos",
+    "description": "Some pictures and moments I chose to share.",
+    "subtitle": "You may think I like to take a lot of pictures but no, I don't take a lot of pictures and when I do is because there some feeling that made me do it.",
+    "seeMore": "See more",
+    "sort": {
+      "newest": "Most recent (published)",
+      "oldest": "Oldest (published)",
+      "takenDesc": "Most recent (taken)",
+      "takenAsc": "Oldest (taken)",
+      "relevant": "Most relevant"
+    },
+    "photo1": {
+      "title": "Amsterdam — Feb 2024",
+      "text": "First day in Amsterdam, a dream come true."
+    },
+    "photo2": {
+      "title": "Bariloche — May 2022",
+      "text": "Little adventure under the snow without the right equipement."
+    }
+  },
+
+  "games": {
+    "title": "Games",
+    "description": "Play my mini-games directly from the website."
+  },
+
+  "blog": {
+    "title": "Blog",
+    "description": "Read what I write about tech, economy, and more."
+  },
+
+  "contact": {
+    "title": "Contact",
+    "description": "Send me a message or find me on social media."
+  },
+
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log In"
+  },
+
+  "menu": {
+    "home": "Home",
+    "about": "About Me",
+    "projects": "Projects",
+    "photos": "Gallery",
+    "games": "Games",
+    "contact": "Contact",
+    "blog": "Blog",
+    "acebury": "Acebury",
+    "admin": "Admin"
+  },
+
+  "notice": {
+    "message": "I personally translated this website into English. If you notice any mistakes or want to help improve it, feel free to contact me in the contact section.",
+    "close": "Close"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "greeting": "¡Bienvenido!",
+  "welcome": "Soy Jona y acá vas a encontrar mis proyectos, fotos, juegos y más.",
+
+  "about": {
+    "title": "Sobre mí",
+    "content": "Soy un apasionado por la tecnología y el desarrollo web."
+  },
+
+  "projects": {
+    "title": "Proyectos",
+    "description": "Acá vas a encontrar mis desarrollos más recientes.",
+    "comingSoon": "Proximamente...",
+    "acebury": "Acebury",
+    "hotelerp": "ERP",
+    "epzn": "epzn"
+  },
+
+  "games": {
+    "title": "Juegos",
+    "description": "Jugá a mis minijuegos directamente desde la web."
+  },
+
+  "blog": {
+    "title": "Blog",
+    "description": "Leé lo que escribo sobre tecnología, economía y más."
+  },
+
+  "contact": {
+    "title": "Contacto",
+    "description": "Dejame un mensaje o encontrame en redes sociales."
+  },
+
+  "login": {
+    "title": "Iniciar sesión",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "submit": "Ingresar"
+  },
+
+  "menu": {
+    "home": "Inicio",
+    "about": "Sobre mí",
+    "projects": "Proyectos",
+    "photos": "Fotos",
+    "games": "Juegos",
+    "contact": "Contacto",
+    "blog": "Blog",
+    "acebury": "Acebury",
+    "admin": "Admin"
+  },
+
+  "photos": {
+    "title": "Fotos",
+    "description": "Algunas imágenes con momentos especiales y anécdotas.",
+    "subtitle": "Parecería que sucede seguido pero no, no saco muchas fotos y cuando lo hago es porque hay algún sentimiento que me impulsa a hacerlo.",
+    "seeMore": "Ver más",
+    "sort": {
+      "newest": "Más recientes (publicación)",
+      "oldest": "Más antiguas (publicación)",
+      "takenDesc": "Más recientes (toma)",
+      "takenAsc": "Más antiguas (toma)",
+      "relevant": "Más relevantes"
+    },
+    "photo1": {
+      "title": "Amsterdam — Feb 2024",
+      "text": "Primer día pisando Amsterdam, un sueño cumplido después de muchos años."
+    },
+    "photo2": {
+      "title": "Bariloche — May 2022",
+      "text": "Una pequeña travesía bajo nieve y sin el equipo adecuado."
+    }
+  }
+}

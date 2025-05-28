@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* 🎨 Clases personalizadas para tus colores */
+.bg-primary {
+  background-color: #4e008f;
+}
+
+.bg-primary-dark {
+  background-color: #23005a;
+}
+
+.bg-primary-accent {
+  background-color: #0e86a5;
+}
+
+.text-accent {
+  color: #0e86a5;
+}
+
+.hover\:text-accent:hover {
+  color: #0e86a5;
+}
+
+/* Tema oscuro opcional base */
+html.dark {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.border-primary-dark {
+  border-color: #23005a;
+}
+
+.border-primary {
+  border-color: #4e008f;
+}
+
+html {
+  transition: background-color 0.5s ease;
+  color: #000000;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.perspective {
+  perspective: 1000px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotateY-180 {
+  transform: rotateY(180deg);
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
