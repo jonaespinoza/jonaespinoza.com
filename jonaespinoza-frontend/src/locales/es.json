@@ -55,6 +55,11 @@
     "description": "Algunas imágenes con momentos especiales y anécdotas.",
     "subtitle": "Parecería que sucede seguido pero no, no saco muchas fotos y cuando lo hago es porque hay algún sentimiento que me impulsa a hacerlo.",
     "seeMore": "Ver más",
+    "notFound": "Foto no encontrada.",
+    "backToGallery": "Volver",
+    "takenOn": "Fecha de la foto",
+    "publishedOn": "Fecha de publicación",
+    "location": "Lugar",
     "sort": {
       "newest": "Más recientes (publicación)",
       "oldest": "Más antiguas (publicación)",
@@ -62,13 +67,15 @@
       "takenAsc": "Más antiguas (toma)",
       "relevant": "Más relevantes"
     },
-    "photo1": {
+    "amsterdam-dia1": {
       "title": "Amsterdam — Feb 2024",
-      "text": "Primer día pisando Amsterdam, un sueño cumplido después de muchos años."
+      "text": "Primer día pisando Amsterdam, un sueño cumplido después de muchos años.",
+      "location": "Amsterdam, Países Bajos"
     },
-    "photo2": {
+    "bariloche-perros": {
       "title": "Bariloche — May 2022",
-      "text": "Una pequeña travesía bajo nieve y sin el equipo adecuado."
+      "text": "Una pequeña travesía bajo nieve y sin el equipo adecuado.",
+      "location": "Bariloche, Argentina"
     }
   }
 }

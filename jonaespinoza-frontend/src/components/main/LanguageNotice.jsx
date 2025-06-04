@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 
-import Text from "./Text";
+import Text from "../Text";
 
 function LanguageNotice() {
   const { i18n } = useTranslation();

@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import MobileNavbar from "./MobileNavbar";
 import Overlay from "./Overlay";
 import ChatButton from "./ChatButton";
-import Login from "../pages/Login";
+import Login from "../../pages/Login";
 import LanguageNotice from "./LanguageNotice";
 
 function Layout({ children }) {

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import PhotoCard from "../components/PhotoCard";
+import PhotoCard from "../components/photos/PhotoCard";
 import Text from "../components/Text";
 import photosData from "../data/photosData";
-import Layout from "../components/Layout";
-import PhotoCarousel from "../components/PhotoCarousel"; // tu nuevo Hero
+import Layout from "../components/main/Layout";
+import PhotoCarousel from "../components/photos/PhotoCarousel"; // tu nuevo Hero
 import { useTranslation } from "react-i18next";
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -49,7 +49,8 @@ function PhotoPage() {
               setSortOption(e.target.value);
               setCurrentPage(1);
             }}
-            className="border border-primary-dark dark:border-primary px-3 py-1 rounded text-sm"
+            className="border border-primary-dark dark:border-primary px-3 py-1 rounded text-sm 
+             bg-white text-black dark:bg-white dark:text-black"
           >
             <option value="newest">📅 {t("photos.sort.newest")}</option>
             <option value="oldest">📆 {t("photos.sort.oldest")}</option>

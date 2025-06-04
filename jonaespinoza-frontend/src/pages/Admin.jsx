@@ -1,4 +1,4 @@
-import Layout from "../components/Layout";
+import Layout from "../components/main/Layout";
 import { useAuth } from "../context/AuthContext";
 
 function Admin() {

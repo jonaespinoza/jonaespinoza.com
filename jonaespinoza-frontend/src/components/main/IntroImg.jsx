@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import fondoInicio from "../assets/fondo-inicio.jpg";
+import fondoInicio from "../../assets/fondo-inicio.jpg";
 import { useTranslation } from "react-i18next";
 
 function IntroImg() {

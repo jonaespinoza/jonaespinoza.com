@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Logo from "./Logo";
 import MenuLinks from "./MenuLinks";
-import ThemeToggle from "./ThemeToggle";
+import ThemeToggle from "../ThemeToggle";
 import LanguageToggle from "./LanguageToggle";
 
 function Sidebar({ onLoginClick }) {

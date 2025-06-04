@@ -1,8 +1,8 @@
 import React from "react";
-import SectionWrapper from "./SectionWrapper";
+import SectionWrapper from "../SectionWrapper";
 import PhotoCard from "./PhotoCard";
 import { useTranslation } from "react-i18next";
-import photos from "../data/photosData"; // ✅ Importa todo el array
+import photos from "../../data/photosData"; // ✅ Importa todo el array
 
 function Photos() {
   const { t } = useTranslation();

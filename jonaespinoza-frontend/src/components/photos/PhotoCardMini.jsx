@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Text from "./Text";
+import Text from "../Text";
 
 function PhotoCardMini({ id, image, titleKey, textKey }) {
   return (

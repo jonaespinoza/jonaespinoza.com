@@ -10,6 +10,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import PhotoPage from "./pages/PhotoPage";
+import PhotoDetail from "./pages/PhotoDetail";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <Routes>
           <Route path="/fotos" element={<PhotoPage />} />
+          <Route path="/fotos/:id" element={<PhotoDetail />} />
           <Route path="/login" element={<Login />} />
 
           <Route
