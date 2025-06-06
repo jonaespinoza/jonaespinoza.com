@@ -1,0 +1,11 @@
+# Ignorar node_modules de ambos proyectos
+jonaespinoza-frontend/node_modules
+jonaespinoza-backend/node_modules
+
+# Carpeta de producción de Vite
+jonaespinoza-frontend/dist
+
+# Archivos comunes a ignorar
+.DS_Store
+.env
+.vscode
