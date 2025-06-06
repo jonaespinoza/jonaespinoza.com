@@ -26,10 +26,16 @@
     "description": "Leé lo que escribo sobre tecnología, economía y más."
   },
 
-  "contact": {
-    "title": "Contacto",
-    "description": "Dejame un mensaje o encontrame en redes sociales."
-  },
+"contact": {
+  "title": "Contacto",
+  "description": "Si tenés alguna consulta, propuesta o sugerencia, escribime por acá.",
+  "name": "Nombre",
+  "email": "Correo electrónico",
+  "phone": "Teléfono",
+  "country": "País",
+  "message": "Mensaje",
+  "send": "Enviar"
+},
 
   "login": {
     "title": "Iniciar sesión",

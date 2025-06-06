@@ -5,6 +5,7 @@ import Overlay from "./Overlay";
 import ChatButton from "./ChatButton";
 import Login from "../../pages/Login";
 import LanguageNotice from "./LanguageNotice";
+import Footer from "./Footer";
 
 function Layout({ children }) {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -30,6 +31,8 @@ function Layout({ children }) {
 
           {/* Resto con padding y separación */}
           <div className="pt-20 md:pt-6 px-6 md:px-6">{rest}</div>
+
+          <Footer />
         </main>
       </div>
 
