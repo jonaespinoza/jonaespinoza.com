@@ -1,5 +1,3 @@
-// src/components/GameCard.jsx
-
 import { useTranslation } from "react-i18next";
 
 function GameCard({ tKey, frontImage, backImage, link }) {
@@ -8,13 +6,13 @@ function GameCard({ tKey, frontImage, backImage, link }) {
   return (
     <a
       href={link}
-      className="relative block overflow-hidden rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-105 group"
+      className="relative block overflow-hidden rounded-3xl shadow-lg transform transition-transform duration-300 hover:scale-103 group"
     >
       {/* 🖼️ Imagen frontal */}
       <img
         src={frontImage}
         alt={t(tKey)}
-        className="w-full h-64 object-cover"
+        className="w-full h-74 object-cover"
       />
 
       {/* 🪄 Capa posterior (opcional para hover o diseño futuro) */}

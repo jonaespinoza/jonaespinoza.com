@@ -26,16 +26,16 @@
     "description": "Leé lo que escribo sobre tecnología, economía y más."
   },
 
-"contact": {
-  "title": "Contacto",
-  "description": "Si tenés alguna consulta, propuesta o sugerencia, escribime por acá.",
-  "name": "Nombre",
-  "email": "Correo electrónico",
-  "phone": "Teléfono",
-  "country": "País",
-  "message": "Mensaje",
-  "send": "Enviar"
-},
+  "contact": {
+    "title": "Contacto",
+    "description": "Si tenés alguna consulta, propuesta o sugerencia, escribime por acá.",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "country": "País",
+    "message": "Mensaje",
+    "send": "Enviar"
+  },
 
   "login": {
     "title": "Iniciar sesión",
@@ -83,5 +83,8 @@
       "text": "Una pequeña travesía bajo nieve y sin el equipo adecuado.",
       "location": "Bariloche, Argentina"
     }
+  },
+  "footer": {
+    "copyright": "© 2025 Jonathan Espinoza — Todos los derechos reservados"
   }
 }

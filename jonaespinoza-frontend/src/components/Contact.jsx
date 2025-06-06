@@ -1,14 +1,27 @@
 import { useTranslation } from "react-i18next";
 import SectionWrapper from "./SectionWrapper";
 import FadeCarousel from "./FadeCarousel";
+import Text from "./Text"; // ⚠️ Importamos el componente animado
 
 export default function Contact() {
   const { t } = useTranslation();
 
   const carouselItems = [
-    <img src="/img/youtube.jpg" alt="YouTube" className="w-full h-full object-cover rounded-xl" />,
-    <img src="/img/linkedin.jpg" alt="LinkedIn" className="w-full h-full object-cover rounded-xl" />,
-    <img src="/img/tiktok.jpg" alt="TikTok" className="w-full h-full object-cover rounded-xl" />,
+    <img
+      src="/img/youtube.jpg"
+      alt="YouTube"
+      className="w-full h-full object-cover rounded-xl"
+    />,
+    <img
+      src="/img/linkedin.jpg"
+      alt="LinkedIn"
+      className="w-full h-full object-cover rounded-xl"
+    />,
+    <img
+      src="/img/tiktok.jpg"
+      alt="TikTok"
+      className="w-full h-full object-cover rounded-xl"
+    />,
   ];
 
   return (
@@ -22,7 +35,9 @@ export default function Contact() {
         <form className="lg:col-span-3 space-y-4">
           {/* Nombre */}
           <div>
-            <label className="block font-medium">{t("contact.name")} *</label>
+            <label className="block font-medium">
+              <Text tKey="contact.name" as="span" /> *
+            </label>
             <input
               type="text"
               required
@@ -33,7 +48,9 @@ export default function Contact() {
 
           {/* Mail */}
           <div>
-            <label className="block font-medium">{t("contact.email")} *</label>
+            <label className="block font-medium">
+              <Text tKey="contact.email" as="span" /> *
+            </label>
             <input
               type="email"
               required
@@ -44,7 +61,9 @@ export default function Contact() {
 
           {/* Teléfono */}
           <div>
-            <label className="block font-medium">{t("contact.phone")}</label>
+            <label className="block font-medium">
+              <Text tKey="contact.phone" as="span" />
+            </label>
             <input
               type="tel"
               maxLength={50}
@@ -54,7 +73,9 @@ export default function Contact() {
 
           {/* País */}
           <div>
-            <label className="block font-medium">{t("contact.country")} *</label>
+            <label className="block font-medium">
+              <Text tKey="contact.country" as="span" /> *
+            </label>
             <input
               type="text"
               required
@@ -65,7 +86,9 @@ export default function Contact() {
 
           {/* Mensaje */}
           <div>
-            <label className="block font-medium">{t("contact.message")} *</label>
+            <label className="block font-medium">
+              <Text tKey="contact.message" as="span" /> *
+            </label>
             <textarea
               required
               maxLength={500}
@@ -78,7 +101,7 @@ export default function Contact() {
             type="submit"
             className="px-6 py-2 bg-violet-700 text-white rounded hover:bg-violet-800 transition"
           >
-            {t("contact.send")}
+            <Text tKey="contact.send" as="span" />
           </button>
         </form>
 

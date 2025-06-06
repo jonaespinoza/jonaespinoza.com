@@ -1,11 +1,9 @@
-// src/components/Games.jsx
-
 import SectionWrapper from "./SectionWrapper";
 import GameCard from "./GameCard";
 
 import SnakeFront from "../assets/games/snake.png";
-import ArkanoidFront from "../assets/games/snake.png";
-import RpgFront from "../assets/games/snake.png";
+import ArkanoidFront from "../assets/games/arkanoid.png";
+import RpgFront from "../assets/games/rpg.png";
 
 function Games() {
   return (
@@ -25,11 +23,7 @@ function Games() {
           frontImage={ArkanoidFront}
           link="/juegos/arkanoid"
         />
-        <GameCard
-          tKey="games.rpg"
-          frontImage={RpgFront}
-          link="/juegos/rpg"
-        />
+        <GameCard tKey="games.rpg" frontImage={RpgFront} link="/juegos/rpg" />
       </div>
     </SectionWrapper>
   );

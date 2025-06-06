@@ -54,7 +54,13 @@
 
   "contact": {
     "title": "Contact",
-    "description": "Send me a message or find me on social media."
+    "description": "If you wanna ask me something, give some advice or just send a message, write it down here.",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "country": "Country",
+    "message": "Message",
+    "send": "Send"
   },
 
   "login": {
@@ -79,5 +85,8 @@
   "notice": {
     "message": "I personally translated this website into English. If you notice any mistakes or want to help improve it, feel free to contact me in the contact section.",
     "close": "Close"
+  },
+  "footer": {
+    "copyright": "© 2025 Jonathan Espinoza — All rights reserved"
   }
 }
