@@ -112,7 +112,7 @@ export default function PhotoDetail() {
               </p>
               <p>
                 <strong>{t("photos.publishedOn")}:</strong>{" "}
-                {new Date(photo.createdAt).toLocaleDateString(i18n.language)}
+                {new Date(photo.date).toLocaleDateString(i18n.language)}
               </p>
               {t(`${photoKey}.location`) && (
                 <p>

@@ -6,6 +6,7 @@ import ChatButton from "./ChatButton";
 import Login from "../../pages/Login";
 import LanguageNotice from "./LanguageNotice";
 import Footer from "./Footer";
+import Loader from "./Loader";
 
 function Layout({ children }) {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -18,6 +19,7 @@ function Layout({ children }) {
 
   return (
     <>
+      <Loader />
       <Overlay visible={maintenanceMode} />
 
       <MobileNavbar onLoginClick={() => setShowLogin(true)} />

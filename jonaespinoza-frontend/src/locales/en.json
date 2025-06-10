@@ -44,7 +44,10 @@
 
   "games": {
     "title": "Games",
-    "description": "Play my mini-games directly from the website."
+    "description": "Play my mini-games directly from the website.",
+    "snake": "Snake",
+    "arkanoid": "Arkanoid",
+    "rpg": "RPG"
   },
 
   "blog": {

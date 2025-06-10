@@ -7,6 +7,16 @@ function MenuLinks({ onClick = () => {}, onLoginClick = () => {} }) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // 🔁 Click con scroll suave y cierre del menú después
+  const handleAnchorClick = (e, targetId) => {
+    e.preventDefault();
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+      setTimeout(onClick, 300); // Esperamos a que scrollee antes de cerrar
+    }
+  };
+
   const handleAdminClick = (e) => {
     e.preventDefault();
     if (isAuthenticated) navigate("/admin");
@@ -21,19 +31,39 @@ function MenuLinks({ onClick = () => {}, onLoginClick = () => {} }) {
       </a>
 
       <div className="ml-4 flex flex-col gap-2 text-sm text-gray-300">
-        <a href="#sobre-mi" onClick={onClick} className="hover:text-accent">
+        <a
+          href="#sobre-mi"
+          onClick={(e) => handleAnchorClick(e, "sobre-mi")}
+          className="hover:text-accent"
+        >
           <NavText tKey="menu.about" />
         </a>
-        <a href="#proyectos" onClick={onClick} className="hover:text-accent">
+        <a
+          href="#proyectos"
+          onClick={(e) => handleAnchorClick(e, "proyectos")}
+          className="hover:text-accent"
+        >
           <NavText tKey="menu.projects" />
         </a>
-        <a href="#fotos" onClick={onClick} className="hover:text-accent">
+        <a
+          href="#fotos"
+          onClick={(e) => handleAnchorClick(e, "fotos")}
+          className="hover:text-accent"
+        >
           <NavText tKey="menu.photos" />
         </a>
-        <a href="#juegos" onClick={onClick} className="hover:text-accent">
+        <a
+          href="#juegos"
+          onClick={(e) => handleAnchorClick(e, "juegos")}
+          className="hover:text-accent"
+        >
           <NavText tKey="menu.games" />
         </a>
-        <a href="#contacto" onClick={onClick} className="hover:text-accent">
+        <a
+          href="#contacto"
+          onClick={(e) => handleAnchorClick(e, "contacto")}
+          className="hover:text-accent"
+        >
           <NavText tKey="menu.contact" />
         </a>
       </div>

@@ -18,7 +18,10 @@
 
   "games": {
     "title": "Juegos",
-    "description": "Jugá a mis minijuegos directamente desde la web."
+    "description": "Jugá a mis minijuegos directamente desde la web.",
+    "snake": "Viborita",
+    "arkanoid": "Arkanoid",
+    "rpg": "Rpg"
   },
 
   "blog": {

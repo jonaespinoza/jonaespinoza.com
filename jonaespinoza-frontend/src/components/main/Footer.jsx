@@ -10,7 +10,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="w-full bg-gray-200 dark:bg-neutral-800 py-6 mt-16">
+    <footer className="w-full bg-gray-800 py-6 mt-16">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 gap-6">
         {/* 🄰 Derechos de autor */}
         <div className="text-center text-sm text-gray-700 dark:text-gray-300 w-full md:w-1/2">

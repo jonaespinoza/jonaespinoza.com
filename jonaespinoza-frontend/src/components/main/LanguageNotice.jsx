@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-
 import Text from "../Text";
 
 function LanguageNotice() {
@@ -10,10 +9,11 @@ function LanguageNotice() {
   const modalRef = useRef(null);
 
   useEffect(() => {
-    if (i18n.language !== "es") {
+    // Mostrar solo si no es español Y si el usuario activó manualmente el cambio
+    const userChanged = localStorage.getItem("langChangedByUser") === "true";
+    if (i18n.language !== "es" && userChanged) {
       setShow(true);
-    } else {
-      setShow(false);
+      localStorage.removeItem("langChangedByUser"); // Mostrar solo una vez
     }
   }, [i18n.language]);
 
