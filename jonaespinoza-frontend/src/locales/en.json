@@ -75,14 +75,14 @@
 
   "menu": {
     "home": "Home",
-    "about": "About Me",
-    "projects": "Projects",
-    "photos": "Gallery",
-    "games": "Games",
-    "contact": "Contact",
     "blog": "Blog",
     "acebury": "Acebury",
-    "admin": "Admin"
+    "admin": "Admin",
+    "sobre-mi": "About Me",
+    "proyectos": "Projects",
+    "fotos": "Photos",
+    "juegos": "Games",
+    "contacto": "Contact"
   },
 
   "notice": {

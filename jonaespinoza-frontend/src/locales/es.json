@@ -49,14 +49,14 @@
 
   "menu": {
     "home": "Inicio",
-    "about": "Sobre mí",
-    "projects": "Proyectos",
-    "photos": "Fotos",
-    "games": "Juegos",
-    "contact": "Contacto",
     "blog": "Blog",
     "acebury": "Acebury",
-    "admin": "Admin"
+    "admin": "Admin",
+    "sobre-mi": "Sobre mí",
+    "proyectos": "Proyectos",
+    "fotos": "Fotos",
+    "juegos": "Juegos",
+    "contacto": "Contacto"
   },
 
   "photos": {
