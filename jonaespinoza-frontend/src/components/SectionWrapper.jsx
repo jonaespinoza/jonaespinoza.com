@@ -4,10 +4,7 @@ import Text from "./Text";
 
 function SectionWrapper({ id, titleKey, contentKey, children }) {
   return (
-    <section
-      id={id}
-      className="w-full py-20 bg-transparent border-t-2 border-primary-dark dark:border-primary"
-    >
+    <section id={id} className="w-full py-20 bg-transparent border-t-2 ">
       <div className="max-w-6xl mx-auto px-4 md:px-12 text-center">
         {/* Título */}
         <motion.h2

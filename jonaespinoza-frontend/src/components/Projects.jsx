@@ -14,17 +14,27 @@ function Projects() {
       titleKey="projects.title"
       contentKey="projects.description"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid-responsive">
         <ProjectCard
-          tKey=""
+          tKey="projects.acebury"
           frontImage={AceburyLogo}
           backImage={AceburyLogo2}
           link="#"
         />
 
-        <ProjectCard tKey="" frontImage={Hotel} backImage={Hotel2} link="#" />
+        <ProjectCard
+          tKey="projects.hotel"
+          frontImage={Hotel}
+          backImage={Hotel2}
+          link="#"
+        />
 
-        <ProjectCard tKey="" frontImage={Bot} backImage={Bot2} link="#" />
+        <ProjectCard
+          tKey="projects.epzn"
+          frontImage={Bot}
+          backImage={Bot2}
+          link="#"
+        />
 
         <ProjectCard
           tKey="projects.comingSoon"

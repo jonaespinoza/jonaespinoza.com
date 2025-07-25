@@ -16,7 +16,7 @@ function Photos() {
       titleKey="photos.title"
       contentKey="photos.description"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
         {featuredPhotos.map((photo) => (
           <PhotoCard
             key={photo.id}
@@ -31,7 +31,7 @@ function Photos() {
       <div className="mt-8 flex justify-center">
         <a
           href="/fotos"
-          className="px-4 py-2 bg-accent rounded hover:bg-primary-dark transition"
+          className="px-6 py-3 bg-accent rounded-lg hover:bg-primary-dark transition-colors duration-300 focus-visible:focus-visible"
         >
           {t("photos.seeMore")}
         </a>

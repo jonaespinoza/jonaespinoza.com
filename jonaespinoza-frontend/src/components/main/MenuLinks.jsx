@@ -65,23 +65,25 @@ function MenuLinks({ onClick = () => {}, onLoginClick = () => {} }) {
           <NavText tKey="menu.home" />
         </a>
 
-        {/* Ítems secundarios */}
-        <div className="mt-1 flex flex-col gap-1 text-sm">
-          {sections.map((id) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              onClick={(e) => handleAnchorClick(e, id)}
-              className={`ml-4 py-1 px-2 transition-all duration-200 ${
-                activeSection === id
-                  ? "text-accent font-medium"
-                  : "hover:text-accent"
-              }`}
-            >
-              <NavText tKey={`menu.${id}`} />
-            </a>
-          ))}
-        </div>
+        {/* Ítems secundarios solo en ruta "/" */}
+        {isRoute("/") && (
+          <div className="mt-1 flex flex-col gap-1 text-sm">
+            {sections.map((id) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                onClick={(e) => handleAnchorClick(e, id)}
+                className={`ml-4 py-1 px-2 transition-all duration-200 ${
+                  activeSection === id
+                    ? "text-accent font-medium"
+                    : "hover:text-accent"
+                }`}
+              >
+                <NavText tKey={`menu.${id}`} />
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Ítems principales restantes */}
