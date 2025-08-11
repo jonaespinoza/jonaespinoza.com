@@ -1,6 +1,6 @@
-import SectionWrapper from "./SectionWrapper";
-import FadeCarousel from "./FadeCarousel";
-import Text from "./Text"; // ⚠️ Importamos el componente animado
+import SectionWrapper from "../main/SectionWrapper";
+import FadeCarousel from "../FadeCarousel";
+import Text from "../main/Text"; // ⚠️ Importamos el componente animado
 
 export default function Contact() {
   const carouselItems = [

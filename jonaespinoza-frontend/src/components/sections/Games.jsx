@@ -1,9 +1,9 @@
-import SectionWrapper from "./SectionWrapper";
-import GameCard from "./GameCard";
+import SectionWrapper from "../main/SectionWrapper";
+import GameCard from "../ui/GameCard";
 
-import SnakeFront from "../assets/games/snake.png";
-import ArkanoidFront from "../assets/games/arkanoid.png";
-import RpgFront from "../assets/games/rpg.png";
+import SnakeFront from "../../assets/games/snake.png";
+import ArkanoidFront from "../../assets/games/arkanoid.png";
+import RpgFront from "../../assets/games/rpg.png";
 
 function Games() {
   return (

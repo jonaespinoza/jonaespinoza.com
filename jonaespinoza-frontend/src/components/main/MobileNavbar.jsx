@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import MenuLinks from "./MenuLinks";
 import ThemeToggle from "../ThemeToggle";
-import LanguageToggle from "./LanguageToggle";
+import LanguageToggle from "../ui/LanguageToggle";
 import { AnimatePresence } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Bot } from "lucide-react"; // Ícono de robotito
 
 function MobileNavbar({ onLoginClick }) {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -14,12 +19,8 @@ function MobileNavbar({ onLoginClick }) {
       }
     };
 
-    // Prevenir scroll cuando el menú está abierto
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    // Bloquea el scroll cuando el menú está abierto
+    document.body.style.overflow = isOpen ? "hidden" : "unset";
 
     window.addEventListener("resize", handleResize);
     return () => {
@@ -27,6 +28,11 @@ function MobileNavbar({ onLoginClick }) {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
+  const handleAdminClick = () => {
+    if (isAuthenticated) navigate("/admin");
+    else onLoginClick();
+  };
 
   return (
     <>
@@ -36,6 +42,17 @@ function MobileNavbar({ onLoginClick }) {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <LanguageToggle />
+
+            {/* Botón del robotito */}
+            <button
+              onClick={handleAdminClick}
+              className="text-white hover:text-accent transition-colors"
+              title="Admin"
+              aria-label="Admin"
+            >
+              <Bot className="w-6 h-6" />
+            </button>
+
             <button
               className="touch-target text-white text-2xl focus:outline-none focus-visible:focus-visible p-2 rounded"
               onClick={() => setIsOpen(!isOpen)}

@@ -1,16 +1,16 @@
 import React from "react";
-import SectionWrapper from "../SectionWrapper";
+import SectionWrapper from "../main/SectionWrapper";
 
-function AboutMe() {
+function Blog() {
   return (
     <SectionWrapper
-      id="sobre-mi"
-      titleKey="about.title"
-      contentKey="about.content"
+      id="blog"
+      titleKey="blog.title"
+      contentKey="blog.description"
     >
       {/* Si más adelante querés agregar más contenido en Sobre mí, lo agregás acá como children */}
     </SectionWrapper>
   );
 }
 
-export default AboutMe;
+export default Blog;

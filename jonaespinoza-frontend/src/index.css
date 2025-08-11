@@ -29,6 +29,10 @@
   border-color: #4e008f;
 }
 
+.border-accent {
+  border-color: #0e86a5;
+}
+
 /* 🌙 Tema base y transiciones */
 html {
   transition: background-color 0.5s ease, color 0.5s ease;

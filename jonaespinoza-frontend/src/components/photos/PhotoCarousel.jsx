@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import photos from "../../data/photosData";
-import Text from "../Text";
+import Text from "../main/Text";
 
 const intervalTime = 5000; // 5 segundos por imagen
 

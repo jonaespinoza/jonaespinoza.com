@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Text from "../Text";
+import Text from "../main/Text";
 import "../../styles/flip.css"; // Asegurate de importar los estilos si los pones fuera
 
 function PhotoCard({ image, titleKey, textKey, id }) {

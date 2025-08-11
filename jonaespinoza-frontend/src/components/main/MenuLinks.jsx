@@ -1,121 +1,100 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import NavText from "./NavText";
 
-const sections = ["sobre-mi", "proyectos", "fotos", "juegos", "contacto"];
+const menuItems = [
+  { id: "sobre-mi", label: "menu.sobre-mi" },
+  { id: "proyectos", label: "menu.proyectos" },
+  { id: "fotos", label: "menu.fotos", page: "/fotos" },
+  { id: "blog", label: "menu.blog", page: "/blog" },
+  { id: "contacto", label: "menu.contacto" },
+];
 
-function MenuLinks({ onClick = () => {}, onLoginClick = () => {} }) {
-  const { isAuthenticated } = useAuth();
+function MenuLinks({ onClick = () => {} }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState("");
 
+  // Trackea el scroll SOLO en home
   useEffect(() => {
+    if (location.pathname !== "/") return;
     const handleScroll = () => {
-      for (let id of sections) {
-        const el = document.getElementById(id);
+      for (let item of menuItems) {
+        const el = document.getElementById(item.id);
         if (el) {
           const rect = el.getBoundingClientRect();
           if (rect.top <= 150 && rect.bottom >= 150) {
-            setActiveSection(id);
+            setActiveSection(item.id);
             return;
           }
         }
       }
       setActiveSection("");
     };
-
     window.addEventListener("scroll", handleScroll);
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [location.pathname]);
 
-  const handleAnchorClick = (e, targetId) => {
+  // Handler click menú
+  const handleMenuClick = (e, item) => {
     e.preventDefault();
-    const el = document.getElementById(targetId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-      setTimeout(onClick, 300);
+
+    // En HOME: SIEMPRE scroll (aunque sea fotos o blog)
+    if (location.pathname === "/") {
+      const el = document.getElementById(item.id);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // En OTRA PAGE
+      if (item.page && location.pathname.startsWith(item.page)) {
+        // Si ya estoy en la page, solo navego al inicio
+        navigate(item.page);
+      } else if (item.page) {
+        // Si no estoy, navego a esa page
+        navigate(item.page);
+      } else {
+        // Los demás, navegan al home y scrollean
+        navigate(`/#${item.id}`);
+        setTimeout(() => {
+          const el = document.getElementById(item.id);
+          if (el) el.scrollIntoView({ behavior: "smooth" });
+        }, 350);
+      }
     }
-  };
-
-  const handleAdminClick = (e) => {
-    e.preventDefault();
-    if (isAuthenticated) navigate("/admin");
-    else onLoginClick();
     onClick();
   };
 
-  const isRoute = (path) => location.pathname === path;
+  // Resalta en home según sección, y en page según ruta
+  const isActive = (item) => {
+    if (location.pathname === "/") {
+      return activeSection === item.id;
+    }
+    if (item.page && location.pathname.startsWith(item.page)) {
+      return true;
+    }
+    return false;
+  };
 
   return (
     <nav className="flex flex-col">
-      {/* Ítem principal con subitems */}
-      <div className="relative w-full">
+      {menuItems.map((item) => (
         <a
-          href="/"
-          className={`block w-full border-t border-b border-gray-700 py-2 px-3 transition-all duration-200 ${
-            isRoute("/")
+          key={item.id}
+          href={
+            location.pathname === "/"
+              ? `#${item.id}`
+              : item.page || `/#${item.id}`
+          }
+          onClick={(e) => handleMenuClick(e, item)}
+          className={`block w-full border-accent py-2 px-3 transition-all duration-200 ${
+            isActive(item)
               ? "text-gray-400 border-r-4 border-r-accent font-semibold"
               : "hover:text-accent"
           }`}
-          onClick={onClick}
         >
-          <NavText tKey="menu.home" />
-        </a>
-
-        {/* Ítems secundarios solo en ruta "/" */}
-        {isRoute("/") && (
-          <div className="mt-1 flex flex-col gap-1 text-sm">
-            {sections.map((id) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                onClick={(e) => handleAnchorClick(e, id)}
-                className={`ml-4 py-1 px-2 transition-all duration-200 ${
-                  activeSection === id
-                    ? "text-accent font-medium"
-                    : "hover:text-accent"
-                }`}
-              >
-                <NavText tKey={`menu.${id}`} />
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Ítems principales restantes */}
-      {[
-        { href: "/blog", key: "menu.blog" },
-        { href: "/acebury", key: "menu.acebury" },
-      ].map(({ href, key }) => (
-        <a
-          key={key}
-          href={href}
-          className={`block w-full border-t border-b border-gray-700 py-2 px-3 transition-all duration-200 ${
-            isRoute(href)
-              ? "text-gray-400 border-r-4 border-r-accent font-semibold"
-              : "hover:text-accent"
-          }`}
-          onClick={onClick}
-        >
-          <NavText tKey={key} />
+          <NavText tKey={item.label} />
         </a>
       ))}
-
-      <a
-        href="/admin"
-        className={`block w-full border-t border-b border-gray-700 py-2 px-3 transition-all duration-200 ${
-          isRoute("/admin")
-            ? "text-gray-400 border-r-4 border-r-accent font-semibold"
-            : "hover:text-accent"
-        }`}
-        onClick={handleAdminClick}
-      >
-        <NavText tKey="menu.admin" />
-      </a>
     </nav>
   );
 }

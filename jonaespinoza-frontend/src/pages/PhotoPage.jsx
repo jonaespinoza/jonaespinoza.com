@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PhotoCard from "../components/photos/PhotoCard";
-import Text from "../components/Text";
+import Text from "../components/main/Text";
 import photosData from "../data/photosData";
 import Layout from "../components/main/Layout";
 import PhotoCarousel from "../components/photos/PhotoCarousel"; // tu nuevo Hero

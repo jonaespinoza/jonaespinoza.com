@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Text from "./Text";
+import Text from "../main/Text";
 
 function ProjectCard({ tKey, frontImage, backImage, link }) {
   const [flipped, setFlipped] = useState(false);
