@@ -1,9 +1,9 @@
 // Explicación:
-// - Maneja autenticación global.
-// - Guarda token y usuario al hacer login.
-// - Restaura sesión al recargar (si hay token válido, llama /api/auth/me).
-// - Expone isAuthenticated, user, login(), logout().
-// - Comentarios explican cada paso para que puedas modificar diseño o storage futuro.
+// - Contexto global de autenticación para el front.
+// - Persiste la sesión usando localStorage: 'authToken' y 'authUser'.
+// - Rehidrata sesión al cargar la app (sobrevive al refresh).
+// - Expone: isAuthenticated, user, login(token, user), logout().
+// - Preparado para futuro: si agregamos /api/auth/me, se puede hidratar el user desde el backend.
 
 import React, {
   createContext,
@@ -16,75 +16,60 @@ import React, {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Estado base de la sesión: usuario y si está autenticado
-  const [user, setUser] = useState(null);
-  const isAuthenticated = !!user; // derivado: si hay user, hay sesión
-  const [bootstrapping, setBootstrapping] = useState(true); // evita parpadeos al cargar
+  // 🗝️ Estado básico de sesión
+  const [token, setToken] = useState(null); // JWT
+  const [user, setUser] = useState(null); // datos mínimos para UI (id, username, email, role)
+  const [bootstrapping, setBootstrapping] = useState(true); // evita parpadeos iniciales
 
-  // Helper: leer token desde localStorage (en producción preferir cookie HttpOnly del backend)
-  const getToken = () => localStorage.getItem("auth_token");
-
-  // Login exitoso: guarda token y user en memoria/localStorage
-  const login = ({ token, user }) => {
-    // Guardamos token para futuras llamadas
-    localStorage.setItem("auth_token", token);
-    // Guardamos usuario en memoria para la UI
-    setUser(user);
-  };
-
-  // Logout: limpia todo
-  const logout = () => {
-    localStorage.removeItem("auth_token");
-    setUser(null);
-  };
-
-  // Restaurar sesión al montar la app
+  // 🔁 Re-hidratación al montar: leemos lo que haya en localStorage
   useEffect(() => {
-    // Si no hay token, terminamos bootstrap rápido
-    const token = getToken();
-    if (!token) {
+    try {
+      const t = localStorage.getItem("authToken");
+      const u = localStorage.getItem("authUser");
+      if (t) setToken(t);
+      if (u) setUser(JSON.parse(u));
+    } catch {
+      // ignoramos errores de parseo
+    } finally {
       setBootstrapping(false);
-      return;
     }
-
-    // Si hay token, preguntamos al backend quién soy (/auth/me)
-    // Esto confirma que el token sigue siendo válido
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // enviamos el token
-          },
-        });
-        if (!res.ok) {
-          // Token inválido/expirado: limpiamos
-          localStorage.removeItem("auth_token");
-          setUser(null);
-        } else {
-          const data = await res.json();
-          // Esperamos { user: {...} }
-          setUser(data?.user || null);
-        }
-      } catch {
-        // Error de red: no asumimos sesión
-        localStorage.removeItem("auth_token");
-        setUser(null);
-      } finally {
-        setBootstrapping(false);
-      }
-    })();
   }, []);
 
+  // 🔐 Iniciar sesión: guarda token+user en memoria y localStorage
+  const login = (newToken, newUser) => {
+    setToken(newToken || null);
+    setUser(newUser || null);
+    try {
+      if (newToken) localStorage.setItem("authToken", newToken);
+      if (newUser) localStorage.setItem("authUser", JSON.stringify(newUser));
+    } catch {
+      // storage puede fallar en modos privados; la sesión queda en memoria
+    }
+  };
+
+  // 🚪 Cerrar sesión: limpia todo
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    try {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+    } catch {}
+  };
+
+  // ✅ Derivado: si hay token asumimos autenticado (mejor UX que depender de /me)
+  const isAuthenticated = !!token;
+
   const value = useMemo(
-    () => ({ isAuthenticated, user, login, logout, bootstrapping }),
-    [isAuthenticated, user, bootstrapping]
+    () => ({ isAuthenticated, token, user, login, logout, bootstrapping }),
+    [isAuthenticated, token, user, bootstrapping]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
+  return ctx;
 }

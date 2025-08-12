@@ -5,8 +5,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const morgan = require("morgan");
+const path = require("path");
 const authRoutes = require("./routes/auth.routes");
+
 const photosRoutes = require("./routes/photos.routes");
+const publicPhotosRoutes = require("./routes/public.photos.routes");
+const adminPhotosRoutes = require("./routes/admin.photos.routes");
 
 const app = express();
 
@@ -42,6 +46,9 @@ app.get("/", (req, res) => res.send("Backend funcionando!"));
 app.use("/api/auth", authRoutes);
 app.use("/api/photos", photosRoutes);
 
+// Rutas públicas de fotos
+app.use("/api/public/photos", publicPhotosRoutes);
+
 // TEST protegido (temporal)
 const requireAuth = require("./middlewares/requireAuth");
 app.get("/api/protected/ping", requireAuth, (req, res) => {
@@ -53,3 +60,9 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () =>
   console.log(`Servidor backend escuchando en el puerto ${PORT}`)
 );
+
+// Sirve estático la carpeta uploads en dev (para ver las imágenes subidas)
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+// Rutas ADMIN (protegidas por requireAuth dentro del router)
+app.use("/api/photos", adminPhotosRoutes);

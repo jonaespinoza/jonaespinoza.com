@@ -1,8 +1,16 @@
+// Qué es: Página de detalle de una foto (vista pública).
+// Qué agregamos:
+// - Controles admin (Editar, Ocultar/Mostrar, Visitar) visibles solo si hay token.
+// - Callbacks listos para refrescar una vez que conectemos con la API.
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import photosData from "../data/photosData";
 import Layout from "../components/main/Layout";
+
+// ⬇️ Controles admin (sin estilos)
+import PhotoAdminControls from "../components/photos/PhotoAdminControls";
 
 export default function PhotoDetail() {
   const { id } = useParams();
@@ -36,8 +44,15 @@ export default function PhotoDetail() {
 
   const photoKey = `photos.${photo.id}`;
 
+  // ♻️ Cuando alternemos visibilidad desde el detalle, luego de conectar API,
+  // acá podremos re-fetch del item. En mock no hacemos nada.
+  const handleVisibilityChange = () => {
+    // TODO: al conectar API, volver a pedir getPublic(id) o actualizar estado.
+  };
+
   return (
     <Layout>
+      {/* Botón volver (tu código) */}
       {!zoom && (
         <button
           onClick={() => navigate("/fotos")}
@@ -47,6 +62,24 @@ export default function PhotoDetail() {
           ←
         </button>
       )}
+
+      {/* 🔧 Controles admin en el detalle (sin estilos). 
+          En mock usamos isVisible: true como placeholder. */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          padding: "8px 16px",
+        }}
+      >
+        <PhotoAdminControls
+          photo={{ id, isVisible: true /* TODO API */ }}
+          variant="detail"
+          onEdit={(pid) => navigate(`/fotos/${pid}/editar`)}
+          onVisibilityChange={handleVisibilityChange}
+          onVisit={(pid) => navigate(`/fotos/${pid}`)}
+        />
+      </div>
 
       {/* 🖼️ Contenedor de imagen con estilo tipo tarjeta */}
       <div className="flex justify-center mt-10">
