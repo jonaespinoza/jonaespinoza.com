@@ -11,6 +11,8 @@ import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import PhotoPage from "./pages/PhotoPage";
 import PhotoDetail from "./pages/PhotoDetail";
+import PhotoCreatePage from "./pages/PhotoCreatePage";
+import PhotoEditPage from "./pages/PhotoEditPage";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -26,6 +28,22 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             element={
               <PrivateRoute>
                 <Admin />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/fotos/agregarfoto"
+            element={
+              <PrivateRoute>
+                <PhotoCreatePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/fotos/:id/editar"
+            element={
+              <PrivateRoute>
+                <PhotoEditPage />
               </PrivateRoute>
             }
           />

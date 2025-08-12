@@ -14,7 +14,7 @@ export default function PrivateRoute({ children }) {
   if (bootstrapping) return null; // o un loader simple
 
   // Si no hay sesión, redirigimos (podés cambiar a /login si tuvieras una ruta)
-  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <Navigate to="/fotos" replace />;
 
   // Si hay sesión, renderizamos el contenido protegido
   return children;

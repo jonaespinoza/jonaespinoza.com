@@ -62,7 +62,7 @@ app.listen(PORT, () =>
 );
 
 // Sirve estático la carpeta uploads en dev (para ver las imágenes subidas)
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Rutas ADMIN (protegidas por requireAuth dentro del router)
 app.use("/api/photos", adminPhotosRoutes);
