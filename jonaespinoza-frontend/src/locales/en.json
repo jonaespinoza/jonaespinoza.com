@@ -17,6 +17,7 @@
   },
 
   "photos": {
+    "notTranslated": "Not translated",
     "title": "Photos",
     "description": "Some pictures and moments I chose to share.",
     "subtitle": "You may think I like to take a lot of pictures but no, I don't take a lot of pictures and when I do is because there some feeling that made me do it.",

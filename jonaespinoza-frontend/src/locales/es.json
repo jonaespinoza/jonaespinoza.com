@@ -60,6 +60,7 @@
   },
 
   "photos": {
+    "notTranslated": "No traducido",
     "title": "Fotos",
     "description": "Algunas imágenes con momentos especiales y anécdotas.",
     "subtitle": "Parecería que sucede seguido pero no, no saco muchas fotos y cuando lo hago es porque hay algún sentimiento que me impulsa a hacerlo.",

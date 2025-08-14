@@ -1,36 +1,103 @@
-// Qué es: Página de detalle de una foto (vista pública).
-// Qué agregamos:
-// - Controles admin (Editar, Ocultar/Mostrar, Visitar) visibles solo si hay token.
-// - Callbacks listos para refrescar una vez que conectemos con la API.
+// Qué es: Página de detalle de foto con tu estilo original (hover, zoom, tamaño normalizado).
+// Qué hacemos: Conectamos al backend (getPublic + visit), normalizamos la URL de la imagen
+// para dev/prod, resolvemos textos ES/EN con fallback y mantenemos flecha y botón de volver.
+// Comentarios explican cada paso clave. No agrego clases Tailwind nuevas.
 
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
-import photosData from "../data/photosData";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Layout from "../components/main/Layout";
 
-// ⬇️ Controles admin (sin estilos)
-import PhotoAdminControls from "../components/photos/PhotoAdminControls";
+// ⚠️ Import correcto del servicio (singular) y helpers
+import photosService from "../services/photosServices";
+import { resolveImageUrl } from "../utils/resolveImageUrl";
+import { composeLocalizedText } from "../utils/photoI18n";
 
 export default function PhotoDetail() {
+  // 1) Router e i18n
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
+  // 2) Estado de datos y UI
   const [photo, setPhoto] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // UI de la imagen (como tenías): zoom + tooltip "i"
   const [zoom, setZoom] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
+  // 3) Evitar sumar visitas múltiples si re-renderiza
+  const visitedRef = useRef(false);
+
+  // 4) Fetch detalle desde el backend
   useEffect(() => {
-    const found = photosData.find((p) => p.id === id);
-    setPhoto(found);
+    let cancel = false;
+    async function fetchDetail() {
+      try {
+        setLoading(true);
+        setError("");
+        const data = await photosService.getPublic(id); // GET /api/public/photos/:id
+        if (cancel) return;
+        setPhoto(data || null);
+      } catch (e) {
+        if (cancel) return;
+        setError(e.message || "Error al cargar la foto");
+      } finally {
+        if (!cancel) setLoading(false);
+      }
+    }
+    fetchDetail();
+    return () => {
+      cancel = true;
+    };
   }, [id]);
 
-  if (!photo) {
+  // 5) Sumar visita una sola vez cuando tenemos la foto
+  useEffect(() => {
+    if (!photo || visitedRef.current) return;
+    visitedRef.current = true;
+    photosService.visit(photo.id).catch(() => {
+      // silencioso; podríamos monitorear métricas en otra fase
+    });
+  }, [photo]);
+
+  // 6) Adaptadores: URL de imagen y textos localizados (con fallback)
+  const imageSrc = useMemo(
+    () => resolveImageUrl(photo?.imageUrl || ""),
+    [photo]
+  );
+
+  // Campos localizados con fallback ES + "Not translated" en EN si falta
+  const title = useMemo(
+    () => composeLocalizedText(photo || {}, "title", i18n.language, t),
+    [photo, i18n.language, t]
+  );
+  const subtitle = useMemo(
+    () => composeLocalizedText(photo || {}, "subtitle", i18n.language, t),
+    [photo, i18n.language, t]
+  );
+  const descriptionMd = useMemo(
+    () => composeLocalizedText(photo || {}, "descriptionMd", i18n.language, t),
+    [photo, i18n.language, t]
+  );
+  const locationText = useMemo(
+    () => composeLocalizedText(photo || {}, "location", i18n.language, t),
+    [photo, i18n.language, t]
+  );
+
+  const takenDate = photo?.takenDate ? new Date(photo.takenDate) : null;
+  const uploadedDate = photo?.uploadedDate
+    ? new Date(photo.uploadedDate)
+    : null;
+
+  // 7) Estados de error / no encontrado
+  if (!loading && (!photo || error)) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
-          <p className="text-lg">{t("photos.notFound")}</p>
+          <p className="text-lg">{error || t("photos.notFound")}</p>
           <button
             onClick={() => navigate("/fotos")}
             className="mt-4 px-4 py-2 bg-gray-800 text-white rounded"
@@ -42,17 +109,9 @@ export default function PhotoDetail() {
     );
   }
 
-  const photoKey = `photos.${photo.id}`;
-
-  // ♻️ Cuando alternemos visibilidad desde el detalle, luego de conectar API,
-  // acá podremos re-fetch del item. En mock no hacemos nada.
-  const handleVisibilityChange = () => {
-    // TODO: al conectar API, volver a pedir getPublic(id) o actualizar estado.
-  };
-
   return (
     <Layout>
-      {/* Botón volver (tu código) */}
+      {/* Flecha/botón de volver arriba-izquierda (tu estilo) */}
       {!zoom && (
         <button
           onClick={() => navigate("/fotos")}
@@ -63,40 +122,24 @@ export default function PhotoDetail() {
         </button>
       )}
 
-      {/* 🔧 Controles admin en el detalle (sin estilos). 
-          En mock usamos isVisible: true como placeholder. */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          padding: "8px 16px",
-        }}
-      >
-        <PhotoAdminControls
-          photo={{ id, isVisible: true /* TODO API */ }}
-          variant="detail"
-          onEdit={(pid) => navigate(`/fotos/${pid}/editar`)}
-          onVisibilityChange={handleVisibilityChange}
-          onVisit={(pid) => navigate(`/fotos/${pid}`)}
-        />
-      </div>
-
-      {/* 🖼️ Contenedor de imagen con estilo tipo tarjeta */}
-      <div className="flex justify-center mt-10">
-        <div
-          className="p-2 rounded-2xl shadow-xl border border-gray-300 dark:border-gray-600
+      {/* 🖼️ Contenedor de imagen con TU estilo original (hover + scale + blur + border) */}
+      {!loading && photo && (
+        <div className="flex justify-center mt-10">
+          <div
+            className="p-2 rounded-2xl shadow-xl border border-gray-300 dark:border-gray-600
   bg-white/50 dark:bg-white/10 backdrop-blur-sm transition cursor-pointer hover:scale-[1.01] transition-transform duration-500"
-          onClick={() => setZoom(true)}
-        >
-          <img
-            src={photo.image}
-            alt={t(photo.titleKey)}
-            className="max-h-[70vh] max-w-full object-contain rounded-md"
-          />
+            onClick={() => setZoom(true)}
+          >
+            <img
+              src={imageSrc}
+              alt={title || "Foto"}
+              className="max-h-[70vh] max-w-full object-contain rounded-md"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 🔍 Popup de zoom, con diseño coherente */}
+      {/* 🔍 Popup de zoom centrado */}
       {zoom && (
         <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
@@ -107,8 +150,8 @@ export default function PhotoDetail() {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={photo.image}
-              alt={t(photo.titleKey)}
+              src={imageSrc}
+              alt={title || "Foto"}
               className="object-contain rounded"
               style={{
                 maxWidth: "calc(100vw - 4rem)",
@@ -116,7 +159,6 @@ export default function PhotoDetail() {
               }}
             />
           </div>
-
           <button
             onClick={() => setZoom(false)}
             className="absolute top-6 right-6 text-white text-xl"
@@ -126,52 +168,69 @@ export default function PhotoDetail() {
         </div>
       )}
 
-      {/* 📍 Footer con título e información */}
-      <div className="w-full max-w-5xl mx-auto mt-6 flex items-center justify-between px-2">
-        <h1 className="text-xl font-semibold">{t(photo.titleKey)}</h1>
-        <div
-          className="relative"
-          onMouseEnter={() => setShowInfo(true)}
-          onMouseLeave={() => setShowInfo(false)}
-        >
-          <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-sm font-bold cursor-pointer">
-            i
+      {/* 📍 Footer con Título + Info (icono "i" con hover) */}
+      {!loading && photo && (
+        <div className="w-full max-w-5xl mx-auto mt-6 flex items-center justify-between px-2">
+          <div>
+            <h1 className="text-xl font-semibold">{title}</h1>
+            {subtitle && <p className="mt-1">{subtitle}</p>}
           </div>
-          {showInfo && (
-            <div className="absolute right-0 mt-2 w-64 bg-white text-sm shadow-xl border rounded p-3 z-10 text-left text-black">
-              <p>
-                <strong>{t("photos.takenOn")}:</strong>{" "}
-                {new Date(photo.takenDate).toLocaleDateString(i18n.language)}
-              </p>
-              <p>
-                <strong>{t("photos.publishedOn")}:</strong>{" "}
-                {new Date(photo.date).toLocaleDateString(i18n.language)}
-              </p>
-              {t(`${photoKey}.location`) && (
-                <p>
-                  <strong>{t("photos.location")}:</strong>{" "}
-                  {t(`${photoKey}.location`)}
-                </p>
-              )}
+
+          <div
+            className="relative"
+            onMouseEnter={() => setShowInfo(true)}
+            onMouseLeave={() => setShowInfo(false)}
+          >
+            <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-sm font-bold cursor-pointer">
+              i
             </div>
-          )}
+
+            {showInfo && (
+              <div className="absolute right-0 mt-2 w-64 bg-white text-sm shadow-xl border rounded p-3 z-10 text-left text-black">
+                {takenDate && (
+                  <p>
+                    <strong>{t("photos.takenOn")}:</strong>{" "}
+                    {takenDate.toLocaleDateString(i18n.language)}
+                  </p>
+                )}
+                {uploadedDate && (
+                  <p>
+                    <strong>{t("photos.publishedOn")}:</strong>{" "}
+                    {uploadedDate.toLocaleDateString(i18n.language)}
+                  </p>
+                )}
+                {locationText && (
+                  <p>
+                    <strong>{t("photos.location")}:</strong> {locationText}
+                  </p>
+                )}
+                <p>
+                  <strong>👁️</strong> {photo.visits ?? 0}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 📝 Descripción */}
-      <div className="max-w-4xl mx-auto mt-4 px-2 text-lg leading-relaxed">
-        {t(`${photoKey}.text`)}
-      </div>
+      {/* 📝 Descripción (texto plano respetando saltos de línea) */}
+      {!loading && photo && (
+        <div className="max-w-4xl mx-auto mt-4 px-2 text-lg leading-relaxed whitespace-pre-line">
+          {descriptionMd}
+        </div>
+      )}
 
-      {/* 🔙 Botón de volver final */}
-      <div className="mt-10 mb-16 flex justify-center">
-        <button
-          onClick={() => navigate("/fotos")}
-          className="px-6 py-2 bg-violet-700 text-white rounded hover:bg-violet-800 transition cursor-pointer"
-        >
-          {t("photos.backToGallery")}
-        </button>
-      </div>
+      {/* 🔙 Botón de volver final (el “botón nuevo” que querías mantener) */}
+      {!loading && (
+        <div className="mt-10 mb-16 flex justify-center">
+          <button
+            onClick={() => navigate("/fotos")}
+            className="px-6 py-2 bg-violet-700 text-white rounded hover:bg-violet-800 transition cursor-pointer"
+          >
+            {t("photos.backToGallery")}
+          </button>
+        </div>
+      )}
     </Layout>
   );
 }

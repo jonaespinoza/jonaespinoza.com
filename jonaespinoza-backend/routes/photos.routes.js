@@ -9,9 +9,6 @@ const router = express.Router();
 const requireAuth = require("../middlewares/requireAuth");
 const ctrl = require("../controllers/photosController");
 
-// Crear (protegido)
-router.post("/", requireAuth, ctrl.validateCreate, ctrl.create);
-
 // Listar (público, con filtros/paginación)
 router.get("/", ctrl.validateList, ctrl.list);
 

@@ -1,28 +1,63 @@
 // routes/admin.photos.routes.js
-// Rutas ADMIN del módulo Fotos: crear, editar, toggles, reorder y ver historial.
+// Módulo unificado de Fotos (público + admin) en un solo archivo.
+// -----------------------------------------------------------------------------
+// Estructura:
+// - Helpers/Utils compartidos
+// - Router PÚBLICO   → export publicPhotosRouter (GET lista, GET detalle, POST visitas)
+// - Router ADMIN     → export adminPhotosRouter  (POST crear, PUT editar, PATCH toggles/reorder, GET history)
+// -----------------------------------------------------------------------------
+// Notas:
+// - El front crea con multipart/form-data: fields => image (binario), metadata (string JSON).
+// - 'parseMetadata' inserta title/descriptionMd/etc. en req.body ANTES de validar.
+// - 'imageUrl' se calcula en el servidor. No se valida desde el body.
+// - Validadores de creación/edición vienen de validators/photos.js
 
 const express = require("express");
-const { validationResult, body } = require("express-validator");
 const path = require("path");
+const mongoose = require("mongoose");
+const { body, validationResult } = require("express-validator");
 
 const requireAuth = require("../middlewares/requireAuth");
-const uploadPhotoImage = require("../middlewares/uploadPhotoImage");
 const parseMetadata = require("../middlewares/parseMetadata");
 
 const Photo = require("../models/Photo");
 const PhotoHistory = require("../models/PhotoHistory");
 
-// ✅ Usamos los validators centralizados
 const { createValidators, updateValidators } = require("../validators/photos");
 
-// Utilidades de archivos/imágenes
-const { buildPublicUrl, deleteLocalPhotoByUrl } = require("../utils/upload");
+const {
+  uploadPhotoImage, // multer.single('image') + validaciones MIME/tamaño
+  buildPublicUrl, // arma URL pública desde filename y base
+  deleteLocalPhotoByUrl, // borra archivo previo (best-effort)
+} = require("../utils/upload");
 
-const router = express.Router();
+const { shouldCountVisit } = require("../utils/visitRateLimit");
 
-/* ------------------------------ helpers comunes ------------------------------ */
+/* ------------------------------- Helpers comunes ------------------------------ */
 
-// Diff simple para el historial (compara before vs. after)
+// Mapea clave de orden del front → sort Mongo
+function mapSort(sort) {
+  switch (sort) {
+    case "oldest":
+      return { uploadedDate: 1 };
+    case "taken-desc":
+      return { takenDate: -1 };
+    case "taken-asc":
+      return { takenDate: 1 };
+    case "relevant":
+      return { visits: -1 };
+    case "newest":
+    default:
+      return { uploadedDate: -1 };
+  }
+}
+
+// Valida ObjectId
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+// Diff simple para historial (compara before vs after solo en claves de 'after')
 function buildChangesDiff(before, after) {
   const changed = {};
   for (const k of Object.keys(after)) {
@@ -39,31 +74,138 @@ function buildChangesDiff(before, after) {
   return changed;
 }
 
-// DEBUG: logueo previo a validación (quitar luego)
-function debugBody(label) {
-  return (req, _res, next) => {
-    console.log(`[${label}] req.body:`, req.body);
-    console.log(
-      `[${label}] req.file:`,
-      !!req.file,
-      req.file?.mimetype,
-      req.file?.size
-    );
-    next();
-  };
-}
+/* --------------------------------- Router PÚBLICO ----------------------------- */
 
-/* ------------------------------------ POST ----------------------------------- */
-// POST /api/photos (multipart/form-data)
-// - image (obligatoria)
-// - metadata (string JSON) con title, descriptionMd, etc. (parseado por parseMetadata)
-router.post(
+const publicPhotosRouter = express.Router();
+
+/**
+ * GET /api/public/photos
+ * - Lista paginada/filtrada/ordenada de fotos visibles.
+ */
+publicPhotosRouter.get("/", async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit, 10) || 16, 1),
+      50
+    );
+    const sort = mapSort(req.query.sort);
+    const filter = { isVisible: true, isArchived: false };
+
+    if (req.query.q && req.query.q.trim()) {
+      filter.$text = { $search: req.query.q.trim() };
+    }
+    if (req.query.tag && req.query.tag.trim()) {
+      filter.tags = req.query.tag.trim();
+    }
+    if (typeof req.query.featured !== "undefined") {
+      if (req.query.featured === "true") filter.featured = true;
+      if (req.query.featured === "false") filter.featured = false;
+    }
+
+    const totalItems = await Photo.countDocuments(filter);
+    const items = await Photo.find(filter)
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    res.json({
+      items,
+      page,
+      limit,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    });
+  } catch (err) {
+    console.error("GET /api/public/photos error:", err);
+    res
+      .status(500)
+      .json({ error: "INTERNAL_ERROR", message: "Error al listar fotos" });
+  }
+});
+
+/**
+ * GET /api/public/photos/:id
+ * - Devuelve foto si es visible; caso contrario 404 genérico.
+ */
+publicPhotosRouter.get("/:id", async (req, res) => {
+  try {
+    const photo = await Photo.findById(req.params.id).lean();
+    if (!photo || !photo.isVisible) {
+      return res
+        .status(404)
+        .json({ error: "NOT_FOUND", message: "Foto no encontrada" });
+    }
+    res.json(photo);
+  } catch (err) {
+    console.error("GET /api/public/photos/:id error:", err);
+    return res
+      .status(404)
+      .json({ error: "NOT_FOUND", message: "Foto no encontrada" });
+  }
+});
+
+/**
+ * POST /api/public/photos/:id/visit
+ * - Rate limit por IP+foto.
+ * - Incrementa visitas si la foto existe y es visible.
+ */
+publicPhotosRouter.post("/:id/visit", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res
+        .status(404)
+        .json({ error: "NOT_FOUND", message: "Foto no encontrada" });
+    }
+
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.socket?.remoteAddress ||
+      "0.0.0.0";
+    const countThis = shouldCountVisit(ip, id);
+    if (!countThis) return res.json({ ok: true, visitsIncremented: false });
+
+    const updated = await Photo.findOneAndUpdate(
+      { _id: id, isVisible: true },
+      { $inc: { visits: 1 } },
+      { new: true, projection: { visits: 1, _id: 1 } }
+    ).lean();
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ error: "NOT_FOUND", message: "Foto no encontrada" });
+    }
+    return res.json({
+      ok: true,
+      visitsIncremented: true,
+      visits: updated.visits,
+    });
+  } catch (err) {
+    console.error("POST /api/public/photos/:id/visit error:", err);
+    return res
+      .status(500)
+      .json({ error: "INTERNAL_ERROR", message: "Error al registrar visita" });
+  }
+});
+
+/* ---------------------------------- Router ADMIN ------------------------------ */
+
+const adminPhotosRouter = express.Router();
+
+/**
+ * POST /api/photos
+ * - Crea una foto. Requiere auth.
+ * - multipart/form-data: image (binario) + metadata (string JSON).
+ */
+adminPhotosRouter.post(
   "/",
-  requireAuth,
-  uploadPhotoImage, // debe setear req.file si subiste imagen
-  parseMetadata, // parsea req.body.metadata si viene como string JSON
-  debugBody("POST /api/photos"), // ← DEBUG
-  ...createValidators, // valida campos requeridos en creación
+  requireAuth, // verifica token y rol
+  uploadPhotoImage, // guarda archivo/valida MIME y tamaño → setea req.file
+  parseMetadata, // mete los campos de metadata en req.body
+  ...createValidators,
   async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -81,7 +223,6 @@ router.post(
         });
       }
 
-      // Armamos la URL pública de la imagen (ajustá según tu storage)
       const baseUrl = process.env.PUBLIC_BASE_URL || "";
       const filename = path.basename(req.file.filename);
       const imageUrl = buildPublicUrl(filename, baseUrl);
@@ -105,7 +246,7 @@ router.post(
         alt: alt || title,
         location,
         takenDate: takenDate ? new Date(takenDate) : undefined,
-        imageUrl,
+        imageUrl, // se calcula en server
         featured: Boolean(featured),
         isVisible: Boolean(isVisible),
         tags,
@@ -140,7 +281,7 @@ router.post(
       if (err?.code === "LIMIT_FILE_SIZE") {
         return res.status(413).json({
           error: "PAYLOAD_TOO_LARGE",
-          message: "Imagen supera tamaño máximo (12MB)",
+          message: "Imagen supera tamaño máximo (15MB)",
         });
       }
       return res
@@ -150,16 +291,15 @@ router.post(
   }
 );
 
-/* ------------------------------------- PUT ----------------------------------- */
-// PUT /api/photos/:id
-// Acepta JSON (solo metadatos) o multipart (image + metadata)
-// ⚠️ updateValidators es un ARRAY: se debe expandir con ...
-router.put(
+/**
+ * PUT /api/photos/:id
+ * - Edita metadatos y opcionalmente reemplaza imagen. Requiere auth.
+ */
+adminPhotosRouter.put(
   "/:id",
   requireAuth,
-  uploadPhotoImage,
+  uploadPhotoImage, // si llega nueva imagen, setea req.file
   parseMetadata,
-  debugBody("POST /api/photos"), // ← DEBUG
   ...updateValidators,
   async (req, res) => {
     try {
@@ -191,7 +331,6 @@ router.put(
         isVisible,
       } = req.body;
 
-      // Solo asignamos campos presentes
       const updates = {};
       if (title !== undefined) updates.title = title;
       if (subtitle !== undefined) updates.subtitle = subtitle;
@@ -204,7 +343,6 @@ router.put(
       if (featured !== undefined) updates.featured = Boolean(featured);
       if (isVisible !== undefined) updates.isVisible = Boolean(isVisible);
 
-      // Reemplazo de imagen (opcional)
       let oldImageUrl = null;
       if (req.file) {
         const baseUrl = process.env.PUBLIC_BASE_URL || "";
@@ -216,15 +354,13 @@ router.put(
       const before = photo.toObject();
       const diff = buildChangesDiff(before, updates);
       if (Object.keys(diff).length === 0) {
-        // Nada cambió: devolvemos el actual
-        return res.json(photo.toJSON());
+        return res.json(photo.toJSON()); // nada cambió
       }
 
       Object.assign(photo, updates);
       await photo.save();
 
       if (oldImageUrl) {
-        // Intento best-effort de borrar la imagen anterior del storage local
         try {
           deleteLocalPhotoByUrl(oldImageUrl);
         } catch (e) {
@@ -263,9 +399,10 @@ router.put(
   }
 );
 
-/* ------------------------------- PATCH toggles ------------------------------- */
-// PATCH /api/photos/:id/visibility  { isVisible: boolean }
-router.patch(
+/**
+ * PATCH /api/photos/:id/visibility { isVisible: boolean }
+ */
+adminPhotosRouter.patch(
   "/:id/visibility",
   requireAuth,
   [body("isVisible").isBoolean().withMessage("isVisible debe ser booleano")],
@@ -277,11 +414,10 @@ router.patch(
         .json({ error: "VALIDATION_ERROR", message: errors.array()[0].msg });
     }
     const photo = await Photo.findById(req.params.id);
-    if (!photo) {
+    if (!photo)
       return res
         .status(404)
         .json({ error: "NOT_FOUND", message: "Foto no encontrada" });
-    }
 
     const before = photo.toObject();
     photo.isVisible = Boolean(req.body.isVisible);
@@ -300,9 +436,11 @@ router.patch(
   }
 );
 
-// PATCH /api/photos/:id/featured  { featured: boolean, order?: number }
-// (order es significativo solo si featured=true)
-router.patch(
+/**
+ * PATCH /api/photos/:id/featured { featured: boolean, order?: number }
+ * - order aplica solo si featured=true
+ */
+adminPhotosRouter.patch(
   "/:id/featured",
   requireAuth,
   [
@@ -320,20 +458,18 @@ router.patch(
         .json({ error: "VALIDATION_ERROR", message: errors.array()[0].msg });
     }
     const photo = await Photo.findById(req.params.id);
-    if (!photo) {
+    if (!photo)
       return res
         .status(404)
         .json({ error: "NOT_FOUND", message: "Foto no encontrada" });
-    }
 
     const before = photo.toObject();
     photo.featured = Boolean(req.body.featured);
     if (photo.featured && typeof req.body.order === "number") {
       photo.order = req.body.order;
     }
-    if (!photo.featured) {
-      photo.order = 0;
-    }
+    if (!photo.featured) photo.order = 0;
+
     await photo.save();
 
     await PhotoHistory.create({
@@ -352,9 +488,11 @@ router.patch(
   }
 );
 
-/* --------------------------------- reorder ---------------------------------- */
-// PATCH /api/photos/reorder  { items: Array<{ id: string, order: number }> }
-router.patch(
+/**
+ * PATCH /api/photos/reorder { items: [{ id, order }] }
+ * - Marca featured=true para los reordenados.
+ */
+adminPhotosRouter.patch(
   "/reorder",
   requireAuth,
   [
@@ -393,13 +531,15 @@ router.patch(
   }
 );
 
-/* --------------------------------- history ---------------------------------- */
-// GET /api/photos/:id/history
-router.get("/:id/history", requireAuth, async (req, res) => {
+/**
+ * GET /api/photos/:id/history
+ * - Lista historial de una foto.
+ */
+adminPhotosRouter.get("/:id/history", requireAuth, async (req, res) => {
   const items = await PhotoHistory.find({ photoId: req.params.id })
     .sort({ createdAt: -1 })
     .lean();
   res.json({ items });
 });
 
-module.exports = router;
+module.exports = { adminPhotosRouter, publicPhotosRouter };

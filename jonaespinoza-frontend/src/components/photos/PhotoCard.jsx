@@ -12,7 +12,11 @@ function PhotoCard({ image, titleKey, textKey, id }) {
           to={`/fotos/${id}`}
           className="flip-card-front rounded-xl overflow-hidden shadow-md bg-white dark:bg-primary text-black dark:text-white"
         >
-          <img src={image} alt="" className="w-full h-full object-cover" />
+          <img
+            src={image}
+            alt={titleKey || "Foto"}
+            className="w-full h-full object-cover"
+          />
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 text-white">
             <Text tKey={titleKey} as="h3" className="text-sm font-semibold" />
           </div>
@@ -25,7 +29,7 @@ function PhotoCard({ image, titleKey, textKey, id }) {
         >
           <img
             src={image}
-            alt=""
+            alt={titleKey || "Foto"}
             className="w-full h-full object-cover blur-sm"
           />
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 text-white">

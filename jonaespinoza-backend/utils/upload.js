@@ -40,7 +40,7 @@ function fileFilter(_req, file, cb) {
 }
 
 // ⛳ Límite de tamaño: 12MB por archivo
-const limits = { fileSize: 12 * 1024 * 1024 };
+const limits = { fileSize: 15 * 1024 * 1024 };
 
 const upload = multer({ storage, fileFilter, limits });
 

@@ -1,37 +1,18 @@
 // D:\Jona\Programacion\jonaespinoza.com\jonaespinoza-frontend\src\services\photosService.js
 // ============================================================================
 // Servicio de Fotos: centraliza TODAS las llamadas HTTP del front relacionadas
-// con fotos. La idea es que los componentes usen estas funciones y no conozcan
-// rutas, headers, ni formatos de request/response del backend.
+// con fotos. Los componentes no deben conocer rutas/headers ni payloads.
 //
-// 🔧 Config:
-// - Usa VITE_API_BASE_URL (por ej. http://localhost:4000) si existe.
-// - Si no, cae por defecto en "http://localhost:4000".
-// - Maneja JSON por defecto y 'multipart/form-data' cuando subimos imagen.
+// Qué hacemos en esta versión:
+// - Mantenemos TODO tu contrato (funciones, rutas y manejo de errores).
+// - Agregamos un "export default" con el objeto photosService, además de los
+//   "named exports". Con esto podés importar como default o por nombre.
+// - Devolvemos errores normalizados { status, message, payload }.
 //
-// 🔐 Auth:
-// - Para endpoints admin, lee el token desde localStorage ('authToken') y agrega
-//   el header Authorization: Bearer <token>.
-//
-// 🧪 Errores:
-// - Lanza errores con { status, message } ya parseados para que el componente
-//   pueda mostrar toasts/mensajes claros.
-//
-// 📦 Exporta helpers:
-//   Público:
-//     - listPublic({ page, limit, sort, q, tag, featured })
-//     - getPublic(id)
-//     - visit(id)
-//   Admin (las dejamos listas aunque todavía no las uses):
-//     - create({ metadata, file })
-//     - update(id, { metadata, file })
-//     - setVisibility(id, isVisible)
-//     - setFeatured(id, featured)
-//     - reorder(items)           // [{id, order}...]
-//     - getHistory(id, {page,limit})
-//     - listAdmin({ page, limit, sort, q, tag, featured, isVisible, isArchived })
-//     - archive(id, isArchived)  // true=archivar, false=desarchivar
-//     - remove(id)               // soft-delete (archivar) como atajo
+// Preparado para futuro:
+// - BASE configurable via VITE_API_BASE_URL.
+// - Soporte multipart para subir imagen.
+// - Parámetro "sort" con claves (newest, oldest, taken-desc, taken-asc, relevant).
 // ============================================================================
 
 const BASE =
@@ -44,7 +25,7 @@ const BASE =
 // Utilidades internas
 // --------------------------
 
-// Construye headers para JSON; agrega Authorization si hay token.
+// Construye headers JSON; agrega Authorization si endpoint admin.
 function buildJsonHeaders(isAdmin = false) {
   const headers = { "Content-Type": "application/json" };
   if (isAdmin) {
@@ -54,21 +35,19 @@ function buildJsonHeaders(isAdmin = false) {
   return headers;
 }
 
-// Envuelve fetch y parsea errores en un formato consistente.
+// Wrapper de fetch que parsea JSON/Texto y unifica errores.
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, options);
 
-  // Intentamos parsear el cuerpo como JSON (si lo hay)
   let data = null;
-  const text = await res.text();
+  const text = await res.text(); // leemos cuerpo una sola vez
   try {
-    data = text ? JSON.parse(text) : null;
+    data = text ? JSON.parse(text) : null; // intentamos JSON
   } catch {
-    data = text || null;
+    data = text || null; // si no es JSON, dejamos texto plano
   }
 
   if (!res.ok) {
-    // Intentamos extraer un mensaje legible
     const message =
       (data && (data.message || data.error || JSON.stringify(data))) ||
       `HTTP ${res.status}`;
@@ -85,8 +64,13 @@ async function request(path, options = {}) {
 // API Pública
 // --------------------------
 
-// Lista pública: solo fotos visibles y no archivadas.
-// Params: { page=1, limit=16, sort='newest', q, tag, featured }
+// Helper local: garantiza que siempre haya 'id' (Mongo _id → id)
+function normalizePhoto(p = {}) {
+  const id = p.id ?? p._id; // si no viene id, usamos _id
+  return { ...p, id };
+}
+
+// Lista pública (solo visibles/no archivadas) + normalización de IDs
 export async function listPublic(params = {}) {
   const { page = 1, limit = 16, sort = "newest", q, tag, featured } = params;
 
@@ -98,17 +82,24 @@ export async function listPublic(params = {}) {
   if (tag) usp.set("tag", tag);
   if (typeof featured !== "undefined") usp.set("featured", String(featured));
 
-  return request(`/api/public/photos?${usp.toString()}`, {
+  const data = await request(`/api/public/photos?${usp.toString()}`, {
     method: "GET",
   });
+
+  // 🔧 Normalizamos cada item para asegurar 'id'
+  const items = Array.isArray(data?.items)
+    ? data.items.map(normalizePhoto)
+    : [];
+  return { ...data, items };
 }
 
-// Detalle público por id (404 si no visible/no existe).
+// Detalle público por id (404 si no visible/no existe) + normalización de ID
 export async function getPublic(id) {
-  return request(`/api/public/photos/${id}`, { method: "GET" });
+  const data = await request(`/api/public/photos/${id}`, { method: "GET" });
+  return normalizePhoto(data);
 }
 
-// Sumar visita (rate-limit por IP del lado del backend).
+// Sumar visita (rate-limited por IP en backend).
 export async function visit(id) {
   return request(`/api/public/photos/${id}/visit`, { method: "POST" });
 }
@@ -118,7 +109,6 @@ export async function visit(id) {
 // --------------------------
 
 // Crear foto: multipart con { file, metadata }.
-// metadata = objeto con campos (title, descriptionMd, etc.)
 export async function create({ metadata, file }) {
   if (!file) {
     const err = new Error("Falta 'file' en create()");
@@ -140,7 +130,7 @@ export async function create({ metadata, file }) {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
-      // ⚠️ No poner Content-Type: multipart; el navegador lo setea solo con el boundary correcto.
+      // Nota: NO forzar Content-Type aquí; el navegador agrega boundary correcto.
     },
     body: form,
   });
@@ -163,7 +153,7 @@ export async function create({ metadata, file }) {
   return res.json();
 }
 
-// Actualizar foto: si pasás file → multipart; si no → JSON.
+// Actualizar foto: si hay file → multipart; si no → JSON.
 export async function update(id, { metadata = {}, file } = {}) {
   const token = localStorage.getItem("authToken");
   if (!token) {
@@ -172,11 +162,9 @@ export async function update(id, { metadata = {}, file } = {}) {
     throw err;
   }
 
-  // Si hay archivo, usamos multipart
   if (file) {
     const form = new FormData();
     form.append("image", file);
-    // Si también mandamos metadata, la incluimos como string JSON
     form.append("metadata", JSON.stringify(metadata));
 
     const res = await fetch(`${BASE}/api/photos/${id}`, {
@@ -184,6 +172,7 @@ export async function update(id, { metadata = {}, file } = {}) {
       headers: { Authorization: `Bearer ${token}` },
       body: form,
     });
+
     if (!res.ok) {
       const text = await res.text();
       let data = null;
@@ -202,7 +191,7 @@ export async function update(id, { metadata = {}, file } = {}) {
     return res.json();
   }
 
-  // Sin archivo → JSON normal
+  // Sin archivo: usamos JSON normal
   return request(`/api/photos/${id}`, {
     method: "PUT",
     headers: buildJsonHeaders(true),
@@ -210,7 +199,7 @@ export async function update(id, { metadata = {}, file } = {}) {
   });
 }
 
-// Toggle visibilidad: { isVisible: boolean }
+// Cambiar visibilidad: { isVisible: boolean }
 export async function setVisibility(id, isVisible) {
   return request(`/api/photos/${id}/visibility`, {
     method: "PATCH",
@@ -219,7 +208,7 @@ export async function setVisibility(id, isVisible) {
   });
 }
 
-// Toggle destacada: { featured: boolean }
+// Cambiar destacada: { featured: boolean }
 export async function setFeatured(id, featured) {
   return request(`/api/photos/${id}/featured`, {
     method: "PATCH",
@@ -228,7 +217,7 @@ export async function setFeatured(id, featured) {
   });
 }
 
-// Reordenamiento de destacadas: items = [{ id, order }, ...]
+// Reordenar destacadas: items = [{ id, order }, ...]
 export async function reorder(items) {
   return request(`/api/photos/reorder`, {
     method: "PATCH",
@@ -237,7 +226,7 @@ export async function reorder(items) {
   });
 }
 
-// Historial por foto (paginado)
+// Historial de una foto (paginado)
 export async function getHistory(id, { page = 1, limit = 20 } = {}) {
   const usp = new URLSearchParams();
   usp.set("page", page);
@@ -248,7 +237,7 @@ export async function getHistory(id, { page = 1, limit = 20 } = {}) {
   });
 }
 
-// Lista admin con filtros
+// Listado admin con filtros
 export async function listAdmin(params = {}) {
   const {
     page = 1,
@@ -287,10 +276,30 @@ export async function archive(id, isArchived) {
   });
 }
 
-// Atajo para "eliminar" (soft-delete = archivar)
+// Eliminar (soft-delete como atajo) — en tu backend será fase 2.
 export async function remove(id) {
   return request(`/api/photos/${id}`, {
     method: "DELETE",
     headers: buildJsonHeaders(true),
   });
 }
+
+// ---------------------------------------------------------------------------
+// Export default + named: permite ambas formas de import sin romper nada.
+// ---------------------------------------------------------------------------
+const photosService = {
+  listPublic,
+  getPublic,
+  visit,
+  create,
+  update,
+  setVisibility,
+  setFeatured,
+  reorder,
+  getHistory,
+  listAdmin,
+  archive,
+  remove,
+};
+
+export default photosService;

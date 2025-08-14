@@ -1,17 +1,13 @@
-// src/components/photos/PhotoEditor.jsx
-// -----------------------------------------------------------------------------------------
-// Form unificado para Crear/Editar fotos.
-// - En "create": exige archivo, manda multipart { image, metadata(JSON) } -> photosServices.create()
-// - En "edit": si hay file manda multipart, si no manda solo metadata -> photosServices.update(id)
-// - takenDate usa input type=date (YYYY-MM-DD) y lo pasa tal cual al backend
-// - Soporta initialData con id o _id
-// -----------------------------------------------------------------------------------------
+// Qué es: Form unificado para Crear/Editar fotos.
+// Qué hacemos: agregamos campos EN opcionales (title_en, subtitle_en, descriptionMd_en, location_en)
+// y los enviamos en metadata tanto en create como en update. Mantiene tu validación y UX.
+// Comentarios explican cada paso. No agrego clases Tailwind nuevas.
 
 import { useEffect, useMemo, useState } from "react";
 import {
   create as createPhoto,
   update as updatePhoto,
-} from "../../services/photosServices";
+} from "../../services/photosServices"; // ⚠️ import del servicio en singular
 import { useAuth } from "../../context/AuthContext";
 
 export default function PhotoEditor({
@@ -26,7 +22,6 @@ export default function PhotoEditor({
   const photoId = initialData?.id || initialData?._id || null;
   const isoToYMD = (iso) => {
     if (!iso) return "";
-    // Acepta Date, string ISO o "YYYY-MM-DD"
     try {
       if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
       const d = new Date(iso);
@@ -40,7 +35,7 @@ export default function PhotoEditor({
     }
   };
 
-  // ---------- Form state ----------
+  // ---------- Form state (ES) ----------
   const [title, setTitle] = useState(initialData?.title || "");
   const [subtitle, setSubtitle] = useState(initialData?.subtitle || "");
   const [descriptionMd, setDescriptionMd] = useState(
@@ -54,10 +49,17 @@ export default function PhotoEditor({
   );
   const [featured, setFeatured] = useState(Boolean(initialData?.featured));
   const [isVisible, setIsVisible] = useState(
-    // por seguridad: si no viene nada en edición, default true para contenido nuevo
     mode === "create" ? true : Boolean(initialData?.isVisible)
   );
   const [file, setFile] = useState(null);
+
+  // ---------- Form state (EN opcional) ----------
+  const [titleEn, setTitleEn] = useState(initialData?.title_en || "");
+  const [subtitleEn, setSubtitleEn] = useState(initialData?.subtitle_en || "");
+  const [descriptionMdEn, setDescriptionMdEn] = useState(
+    initialData?.descriptionMd_en || ""
+  );
+  const [locationEn, setLocationEn] = useState(initialData?.location_en || "");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -111,6 +113,7 @@ export default function PhotoEditor({
 
     setSaving(true);
     try {
+      // Metadata: mantenemos ES como base y añadimos EN si se completó
       const metadata = {
         title: title.trim(),
         subtitle: subtitle.trim() || undefined,
@@ -121,16 +124,22 @@ export default function PhotoEditor({
         tags,
         featured: Boolean(featured),
         isVisible: Boolean(isVisible),
+
+        // 👉 Campos EN opcionales (el back puede ignorar vacíos)
+        title_en: titleEn.trim() || undefined,
+        subtitle_en: subtitleEn.trim() || undefined,
+        descriptionMd_en: descriptionMdEn.trim() || undefined,
+        location_en: locationEn.trim() || undefined,
       };
 
       const saved =
         mode === "create"
-          ? await createPhoto({ metadata, file })
+          ? await createPhoto({ metadata, file }) // ⬅️ AQUÍ usamos photosService.create
           : await updatePhoto(photoId, { metadata, file: file || undefined });
 
       onSaved?.(saved);
 
-      // en creación, limpiar el form para poder cargar otra rápido
+      // en creación, limpiar para carga rápida de otra foto
       if (mode === "create") {
         setTitle("");
         setSubtitle("");
@@ -143,9 +152,14 @@ export default function PhotoEditor({
         setIsVisible(true);
         setFile(null);
         setPreview("");
+
+        // limpiar EN
+        setTitleEn("");
+        setSubtitleEn("");
+        setDescriptionMdEn("");
+        setLocationEn("");
       }
     } catch (err) {
-      // muestra mensaje del backend si vino en JSON: { message } o { error }
       setError(err?.message || "No se pudo guardar.");
     } finally {
       setSaving(false);
@@ -165,6 +179,7 @@ export default function PhotoEditor({
         </div>
       )}
 
+      {/* --- Español (base) --- */}
       <label className="grid gap-1">
         <span>Título*</span>
         <input value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -198,6 +213,42 @@ export default function PhotoEditor({
         <input value={location} onChange={(e) => setLocation(e.target.value)} />
       </label>
 
+      {/* --- Inglés (opcional) --- */}
+      <fieldset className="grid gap-2">
+        <legend>English (opcional)</legend>
+
+        <label className="grid gap-1">
+          <span>Title (EN)</span>
+          <input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} />
+        </label>
+
+        <label className="grid gap-1">
+          <span>Subtitle (EN)</span>
+          <input
+            value={subtitleEn}
+            onChange={(e) => setSubtitleEn(e.target.value)}
+          />
+        </label>
+
+        <label className="grid gap-1">
+          <span>Description (EN, Markdown)</span>
+          <textarea
+            rows={6}
+            value={descriptionMdEn}
+            onChange={(e) => setDescriptionMdEn(e.target.value)}
+          />
+        </label>
+
+        <label className="grid gap-1">
+          <span>Location (EN)</span>
+          <input
+            value={locationEn}
+            onChange={(e) => setLocationEn(e.target.value)}
+          />
+        </label>
+      </fieldset>
+
+      {/* --- Resto de campos --- */}
       <label className="grid gap-1">
         <span>Fecha en que se tomó</span>
         <input
